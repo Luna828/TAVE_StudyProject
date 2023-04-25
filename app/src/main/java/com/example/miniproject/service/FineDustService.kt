@@ -1,4 +1,4 @@
-package com.example.miniproject.data
+package com.example.miniproject.service
 
 import com.example.miniproject.data.model.DustResponse
 import retrofit2.Call

@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import com.example.miniproject.common.Constant.API_KEY_MOVIE
 import com.example.miniproject.common.Constant.BASE_URL_MOVIE
 import com.example.miniproject.data.*
+import com.example.miniproject.service.TheMovieService
 import com.example.miniproject.ui.theme.MiniProjectTheme
 import retrofit2.Call
 import retrofit2.Callback
@@ -36,8 +37,6 @@ import retrofit2.converter.gson.GsonConverterFactory
 class MainActivity : ComponentActivity() {
     // private val retrofit by lazy { retrofitBuilder() }
     //private val dustService by lazy { retrofit.create(FineDustService::class.java) }
-    private val retrofitMovie by lazy { movieRetrofit() }
-    private val movieService by lazy { retrofitMovie.create(TheMovieService::class.java) }
 
     @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -73,34 +72,23 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
-
-
-    private fun movieRetrofit(): Retrofit =
-        Retrofit.Builder()
-            .baseUrl(BASE_URL_MOVIE)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-
-
-    @SuppressLint("SuspiciousIndentation")
     private fun movieServiceLoad(courseList: MutableList<String>, ctx: Context) {
-        val movieRoot: Call<MovieListResponse> = movieService.getQuery(courseList.toString(), API_KEY_MOVIE, "popularity.desc", "ko")
-        movieRoot.enqueue(object : Callback<MovieListResponse> {
+        val movieRetrofit = RetrofitClient.movieRetrofit
+        movieRetrofit.create(TheMovieService::class.java).getQuery(
+            courseList.toString(),
+            API_KEY_MOVIE,
+            "popularity.desc",
+            "ko"
+        ).enqueue(object : Callback<MovieListResponse> {
             override fun onResponse(call: Call<MovieListResponse>, response: Response<MovieListResponse>) {
-                Log.d("로그코드", response.code().toString())
-                Log.d("로그바디", response.body().toString())
-
                 if (response.isSuccessful) {
                     response.body()?.results?.map {
                         it.title
                         it.release_date
-                        Log.d("로그 제목", it.title.toString())
-                        Log.d("로그 release_date", it.release_date.toString())
                         courseList.add(it.title)
                     }
                 }
             }
-
             override fun onFailure(call: Call<MovieListResponse>, t: Throwable) {
                 Log.d("실패", t.message.toString())
             }

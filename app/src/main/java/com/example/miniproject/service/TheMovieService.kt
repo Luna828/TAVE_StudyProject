@@ -1,5 +1,6 @@
-package com.example.miniproject.data
+package com.example.miniproject.service
 
+import com.example.miniproject.data.MovieListResponse
 import retrofit2.Call
 import retrofit2.http.GET
 import retrofit2.http.Query
