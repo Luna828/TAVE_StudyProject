@@ -1,8 +1,9 @@
-package com.example.miniproject.data.model.items.body
+package com.example.miniproject.data.model.dust.body
 
 import com.google.gson.annotations.SerializedName
+import java.util.Date
 
-data class DustBody(
+data class DustItem(
     @SerializedName("clearVal")
     val clearVal: String,
     @SerializedName("sn")

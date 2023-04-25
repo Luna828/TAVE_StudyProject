@@ -1,15 +1,15 @@
 package com.example.miniproject.data.model
 
 import com.google.gson.annotations.SerializedName
+import retrofit2.Response
 
 data class DustRoot(
     @SerializedName("response")
-    val response: DustRootBody
+    val response: DustResponse
 )
 
-data class DustRootBody(
-    @SerializedName("totalCount")
-    val totalCount: Int,
+data class DustResponse(
     @SerializedName("body")
-    val body: DustItems
+    val body: DustBody,
 )
+
