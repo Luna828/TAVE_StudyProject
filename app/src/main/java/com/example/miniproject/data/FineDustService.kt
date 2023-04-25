@@ -1,7 +1,6 @@
 package com.example.miniproject.data
 
 import com.example.miniproject.data.model.DustResponse
-import com.example.miniproject.data.model.DustRoot
 import retrofit2.Call
 import retrofit2.http.GET
 import retrofit2.http.Query

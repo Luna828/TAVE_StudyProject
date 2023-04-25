@@ -1,22 +1,32 @@
 package com.example.miniproject
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.Card
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
-import com.example.miniproject.common.Constant.API_KEY
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import com.example.miniproject.common.Constant.API_KEY_MOVIE
-import com.example.miniproject.common.Constant.BASE_URL
 import com.example.miniproject.common.Constant.BASE_URL_MOVIE
-import com.example.miniproject.common.Constant.RETURN_TYPE
 import com.example.miniproject.data.*
-import com.example.miniproject.data.model.DustResponse
 import com.example.miniproject.ui.theme.MiniProjectTheme
-import com.google.gson.GsonBuilder
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -24,51 +34,71 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 class MainActivity : ComponentActivity() {
-    //private val retrofit by lazy { retrofitBuilder() }
-    private val retrofitMovie by lazy { movieRetrofit()}
-    //private val dustService by lazy { retrofit.create(FineDustService::class.java)}
-    private val movieService by lazy { retrofitMovie.create(TheMovieService::class.java)}
+    // private val retrofit by lazy { retrofitBuilder() }
+    //private val dustService by lazy { retrofit.create(FineDustService::class.java) }
+    private val retrofitMovie by lazy { movieRetrofit() }
+    private val movieService by lazy { retrofitMovie.create(TheMovieService::class.java) }
 
     @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent { 
-            MiniProjectTheme(true) { 
+
+        setContent {
+            val courseList = remember { mutableStateListOf<String>() }
+            movieServiceLoad(courseList, applicationContext)
+
+            MiniProjectTheme(true) {
                 Scaffold() {
-                    Column() {
-                        Text(text = "안녕")
+                    LazyColumn {
+                        items(courseList) { movie ->
+                            MovieCard(orden = movie)
+                        }
                     }
                 }
-            } 
+            }
         }
-
-        movieServiceLoad()
     }
 
-    private fun movieRetrofit(): Retrofit = Retrofit.Builder()
+    @Composable
+    fun MovieCard(orden: String) {
+        Card(
+            Modifier
+                .padding(12.dp)
+                .border(width = 1.dp, color = Color.White)
+                .fillMaxWidth()
+                .height(50.dp)
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Text("$orden")
+            }
+        }
+    }
+
+
+    private fun movieRetrofit(): Retrofit =
+        Retrofit.Builder()
             .baseUrl(BASE_URL_MOVIE)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
 
 
-    private fun movieServiceLoad(){
-        movieService.getTop(
-            mapOf(
-                "page" to "2",
-                "api_key" to API_KEY_MOVIE,
-                "sort_by" to "popularity.desc",
-                "language" to "ko"
-            )
-        ).enqueue(object : Callback<MovieListResponse>{
+    @SuppressLint("SuspiciousIndentation")
+    private fun movieServiceLoad(courseList: MutableList<String>, ctx: Context) {
+        val movieRoot: Call<MovieListResponse> = movieService.getQuery(courseList.toString(), API_KEY_MOVIE, "popularity.desc", "ko")
+        movieRoot.enqueue(object : Callback<MovieListResponse> {
             override fun onResponse(call: Call<MovieListResponse>, response: Response<MovieListResponse>) {
                 Log.d("로그코드", response.code().toString())
-                Log.d("로그바디", response.body()?.results.toString())
+                Log.d("로그바디", response.body().toString())
 
-                val MovieList = response.body()?.results?.map {
-                    it.title
-                    it.overview
-                } 
-
+                if (response.isSuccessful) {
+                    response.body()?.results?.map {
+                        it.title
+                        it.release_date
+                        Log.d("로그 제목", it.title.toString())
+                        Log.d("로그 release_date", it.release_date.toString())
+                        courseList.add(it.title)
+                    }
+                }
             }
 
             override fun onFailure(call: Call<MovieListResponse>, t: Throwable) {
@@ -77,8 +107,7 @@ class MainActivity : ComponentActivity() {
         })
     }
 
-
-
+//
 //    var gson = GsonBuilder().setLenient().create()
 //    private fun retrofitBuilder(): Retrofit = Retrofit.Builder()
 //        .baseUrl(BASE_URL)
@@ -86,17 +115,17 @@ class MainActivity : ComponentActivity() {
 //        .build()
 //
 //    private fun getDustData(): Unit {
-//        val dustRoot: Call<DustResponse> = dustService.getFineDust(2022,"$RETURN_TYPE","$API_KEY")
-//        dustRoot.enqueue(object: Callback<DustResponse> {
+//        val dustRoot: Call<DustResponse> = dustService.getFineDust(2022, "$RETURN_TYPE", "$API_KEY")
+//        dustRoot.enqueue(object : Callback<DustResponse> {
 //
-//                override fun onResponse(call: Call<DustResponse>, response: Response<DustResponse>) {
+//            override fun onResponse(call: Call<DustResponse>, response: Response<DustResponse>) {
 //
-//                    Log.d("로그", response.body().toString())
-//                }
+//                Log.d("로그", response.body().toString())
+//            }
 //
-//                override fun onFailure(call: Call<DustResponse>, t: Throwable) {
-//                    Log.d("실패", t.message.toString())
-//                }
-//            })
-//   }
+//            override fun onFailure(call: Call<DustResponse>, t: Throwable) {
+//                Log.d("실패", t.message.toString())
+//            }
+//        })
+//    }
 }
